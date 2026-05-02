@@ -1,0 +1,154 @@
+import java.util.*;
+import java.io.*;
+
+class User implements Serializable {
+    int id;
+    String name;
+
+    User(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    void display() {
+        System.out.println("🔹 ID: " + id + " | Name: " + name);
+    }
+}
+
+public class AdminDashboard {
+
+    static ArrayList<User> users = new ArrayList<>();
+    static Scanner sc = new Scanner(System.in);
+
+    static final String FILE_NAME = "users.dat";
+
+    public static void main(String[] args) {
+
+        loadUsers();
+
+        if (!login()) {
+            System.out.println("🚫 Access Denied!");
+            return;
+        }
+
+        int choice;
+
+        do {
+            printMenu();
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1 -> addUser();
+                case 2 -> viewUsers();
+                case 3 -> deleteUser();
+                case 4 -> showStats();
+                case 5 -> saveUsers();
+                case 6 -> System.out.println("👋 Exiting Dashboard...");
+                default -> System.out.println("❌ Invalid choice!");
+            }
+
+        } while (choice != 6);
+    }
+
+    // 🔐 LOGIN SYSTEM
+    static boolean login() {
+        String adminUser = "admin";
+        String adminPass = "1234";
+
+        System.out.println("========== 🔐 LOGIN ==========");
+        System.out.print("Username: ");
+        sc.nextLine(); // fix buffer
+        String user = sc.nextLine();
+
+        System.out.print("Password: ");
+        String pass = sc.nextLine();
+
+        if (user.equals(adminUser) && pass.equals(adminPass)) {
+            System.out.println("✅ Login Successful!\n");
+            return true;
+        }
+        return false;
+    }
+
+    // 📋 MENU UI
+    static void printMenu() {
+        System.out.println("\n========= 🛠 ADMIN DASHBOARD =========");
+        System.out.println("1️⃣  Add User");
+        System.out.println("2️⃣  View Users");
+        System.out.println("3️⃣  Delete User");
+        System.out.println("4️⃣  View Statistics");
+        System.out.println("5️⃣  Save Data");
+        System.out.println("6️⃣  Exit");
+        System.out.print("👉 Enter choice: ");
+    }
+
+    // ➕ ADD USER
+    static void addUser() {
+        System.out.print("Enter ID: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        System.out.print("Enter Name: ");
+        String name = sc.nextLine();
+
+        users.add(new User(id, name));
+        System.out.println("✅ User Added!");
+    }
+
+    // 👀 VIEW USERS
+    static void viewUsers() {
+        if (users.isEmpty()) {
+            System.out.println("⚠️ No users found.");
+            return;
+        }
+
+        System.out.println("\n📄 USER LIST:");
+        for (User u : users) {
+            u.display();
+        }
+    }
+
+    // ❌ DELETE USER
+    static void deleteUser() {
+        System.out.print("Enter User ID to delete: ");
+        int id = sc.nextInt();
+
+        boolean removed = users.removeIf(u -> u.id == id);
+
+        if (removed) {
+            System.out.println("🗑 User Deleted!");
+        } else {
+            System.out.println("⚠️ User not found!");
+        }
+    }
+
+    // 📊 STATS
+    static void showStats() {
+        System.out.println("\n📊 STATISTICS:");
+        System.out.println("Total Users: " + users.size());
+
+        if (!users.isEmpty()) {
+            System.out.println("Last Added User: " + users.get(users.size() - 1).name);
+        }
+    }
+
+    // 💾 SAVE USERS
+    static void saveUsers() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
+            oos.writeObject(users);
+            System.out.println("💾 Data Saved Successfully!");
+        } catch (IOException e) {
+            System.out.println("❌ Error Saving Data!");
+        }
+    }
+
+    // 📂 LOAD USERS
+    static void loadUsers() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_NAME))) {
+            users = (ArrayList<User>) ois.readObject();
+            System.out.println("📂 Previous data loaded!");
+        } catch (Exception e) {
+            System.out.println("⚠️ No previous data found.");
+        }
+    }
+}
